@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="PackAndDeploy" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
     <WorkerRole name="WorkerRole" vmsize="ExtraSmall">
+        <Startup>
+            <Task commandLine="installRails.cmd" executionContext="elevated">
+                <Environment>
+                     <Variable name="EMULATED">
+                        <RoleInstanceValue xpath="/RoleEnvironment/Deployment/@emulated" />
+                    </Variable>
+                    <Variable name="RAILS_PATH">
+                        <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/LocalResources/LocalResource[@name='rails']/@path" />
+                    </Variable>
+                </Environment>
+            </Task>
+            <Task commandLine="installDependencies.cmd">
+                <Environment>
+                    <Variable name="RAILS_PATH">
+                        <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/LocalResources/LocalResource[@name='rails']/@path" />
+                    </Variable>
+                </Environment>
+            </Task>
+        </Startup>
         <Runtime>
             <Environment>
                 <Variable name="ADDRESS">
@@ -8,6 +27,9 @@
                 </Variable>
                 <Variable name="PORT">
                     <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/Endpoints/Endpoint[@name='HttpIn']/@port" />
+                </Variable>
+                <Variable name="RAILS_PATH">
+                    <RoleInstanceValue xpath="/RoleEnvironment/CurrentInstance/LocalResources/LocalResource[@name='rails']/@path" />
                 </Variable>
             </Environment>
             <EntryPoint>
@@ -17,5 +39,8 @@
         <Endpoints>
             <InputEndpoint name="HttpIn" protocol="tcp" port="80" />
         </Endpoints>
+        <LocalResources>
+            <LocalStorage name="rails" cleanOnRoleRecycle="true" sizeInMB="1000" />
+        </LocalResources>
     </WorkerRole>
 </ServiceDefinition>
